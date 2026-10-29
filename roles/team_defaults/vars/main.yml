@@ -1,0 +1,29 @@
+---
+team_defaults_managers_by_os:
+  Darwin: [brew, brew_cask]
+  Debian: [apt]
+  RedHat: [dnf]
+  Windows: [choco]
+
+team_defaults_managers: "{{ team_defaults_managers_by_os[ansible_facts['os_family']] }}"
+
+# Splits team_defaults_tools into package lists per manager plus the tools that
+# have no package on this OS, for example:
+#   { brew: [git, jq], brew_cask: [], skipped: [] }
+team_defaults_plan: >-
+  {%- set plan = {'skipped': []} -%}
+  {%- for manager in team_defaults_managers -%}
+    {%- set _ = plan.update({manager: []}) -%}
+  {%- endfor -%}
+  {%- for tool in team_defaults_tools -%}
+    {%- set entry = team_defaults_catalog[tool] -%}
+    {%- set found = team_defaults_managers | select('in', entry) | list -%}
+    {%- if found -%}
+      {%- set _ = plan[found[0]].append(entry[found[0]]) -%}
+    {%- else -%}
+      {%- set _ = plan.skipped.append(tool) -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {{ plan }}
+
+team_defaults_windows_git: 'C:\Program Files\Git\cmd\git.exe'

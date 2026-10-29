@@ -1,0 +1,15 @@
+galaxy_info:
+  role_name: team_defaults
+  author: Your team
+  description: Installs the team's tools and applies shared Git settings
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: MacOSX
+    - name: Windows
+    - name: Debian
+    - name: Ubuntu
+    - name: Fedora
+    - name: EL
+
+dependencies: []

@@ -1,0 +1,11 @@
+---
+- name: Team setup
+  hosts: all
+  gather_facts: true
+  vars:
+    # The two lines most teams change first:
+    team_defaults_tools: [git, python, neovim, jq]
+    team_defaults_git_config: { init.defaultBranch: main, pull.rebase: "true" }
+  roles:
+    - role: team_defaults
+      tags: team_defaults

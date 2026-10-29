@@ -1,0 +1,14 @@
+# Tells Sailwright where this repo keeps its roles and playbooks.
+# Relative paths resolve from the folder that contains this file.
+playbook: team-setup.yml
+
+# Keep Sailwright's bundled example roles as a fallback below your own roles.
+include_default_roles: true
+include_default_playbooks: false
+
+sources:
+  - name: team
+    type: local
+    path: .
+    roles_path: roles
+    playbooks_path: playbooks

@@ -1,0 +1,43 @@
+---
+- name: Ensure Chocolatey is installed
+  chocolatey.chocolatey.win_chocolatey:
+    name: chocolatey
+    state: present
+
+- name: Install Chocolatey packages
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ team_defaults_plan.choco }}"
+    state: present
+  when: team_defaults_plan.choco | length > 0
+
+# Sailwright connects to Windows through a temporary admin account, so
+# per-user Git settings would land in that account. Use system scope instead.
+- name: Check whether Git is available
+  ansible.windows.win_stat:
+    path: "{{ team_defaults_windows_git }}"
+  register: team_defaults_git_exe
+
+- name: Read system-wide Git settings
+  ansible.windows.win_command:
+    argv: ["{{ team_defaults_windows_git }}", config, --system, --get, "{{ item.key }}"]
+  loop: "{{ team_defaults_git_config | dict2items }}"
+  register: team_defaults_git_current
+  changed_when: false
+  failed_when: team_defaults_git_current.rc not in [0, 1]
+  check_mode: false
+  when: team_defaults_git_exe.stat.exists
+
+- name: Set system-wide Git settings
+  ansible.windows.win_command:
+    argv: ["{{ team_defaults_windows_git }}", config, --system, "{{ item.item.key }}", "{{ item.item.value }}"]
+  loop: "{{ team_defaults_git_current.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.key }}"
+  when:
+    - item.skipped is not defined
+    - item.stdout | trim != item.item.value | string
+
+- name: Report skipped Git settings
+  ansible.builtin.debug:
+    msg: "Git is not installed yet; Git settings apply on the first real run."
+  when: not team_defaults_git_exe.stat.exists

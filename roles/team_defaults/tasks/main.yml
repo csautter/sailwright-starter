@@ -1,0 +1,26 @@
+---
+- name: Check that this OS is supported
+  ansible.builtin.assert:
+    that: ansible_facts['os_family'] in team_defaults_managers_by_os
+    fail_msg: >-
+      team_defaults supports macOS, Windows, Debian/Ubuntu, and Fedora/RHEL.
+      This host reports os_family={{ ansible_facts['os_family'] }}.
+    quiet: true
+
+- name: Check that every tool is in the catalog
+  ansible.builtin.assert:
+    that: unknown_tools | length == 0
+    fail_msg: >-
+      Unknown tools in team_defaults_tools: {{ unknown_tools | join(', ') }}.
+      Add them to team_defaults_catalog in roles/team_defaults/defaults/main.yml.
+    quiet: true
+  vars:
+    unknown_tools: "{{ team_defaults_tools | reject('in', team_defaults_catalog) | list }}"
+
+- name: Report tools without a package on this OS
+  ansible.builtin.debug:
+    msg: "Skipping on {{ ansible_facts['os_family'] }}: {{ team_defaults_plan.skipped | join(', ') }}"
+  when: team_defaults_plan.skipped | length > 0
+
+- name: Include tasks for this OS
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] | lower }}.yml"

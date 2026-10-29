@@ -1,0 +1,34 @@
+---
+- name: Find Homebrew
+  ansible.builtin.stat:
+    path: "{{ item }}/brew"
+  loop: [/opt/homebrew/bin, /usr/local/bin]
+  register: team_defaults_brew
+
+- name: Pick the Homebrew path
+  ansible.builtin.set_fact:
+    team_defaults_brew_path: >-
+      {{ team_defaults_brew.results | selectattr('stat.exists') | map(attribute='item') | first | default('') }}
+
+- name: Check that Homebrew is installed
+  ansible.builtin.assert:
+    that: team_defaults_brew_path | length > 0
+    fail_msg: "Homebrew is required on macOS. Install it from https://brew.sh and run again."
+    quiet: true
+
+- name: Install Homebrew formulae
+  community.general.homebrew:
+    name: "{{ team_defaults_plan.brew }}"
+    path: "{{ team_defaults_brew_path }}"
+    state: present
+  when: team_defaults_plan.brew | length > 0
+
+- name: Install Homebrew casks
+  community.general.homebrew_cask:
+    name: "{{ team_defaults_plan.brew_cask }}"
+    path: "{{ team_defaults_brew_path }}"
+    state: present
+  when: team_defaults_plan.brew_cask | length > 0
+
+- name: Apply Git settings
+  ansible.builtin.include_tasks: git_posix.yml

@@ -1,0 +1,40 @@
+name: Check team setup
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install Ansible and ansible-lint
+        run: pip install ansible ansible-lint
+      - name: Lint
+        run: ansible-lint
+
+  ubuntu:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Ansible
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ansible python3-apt sudo
+      - name: Preview changes
+        run: ansible-playbook -i localhost, -c local playbooks/team-setup.yml --check
+      - name: Apply
+        run: ansible-playbook -i localhost, -c local playbooks/team-setup.yml
+      - name: Apply again and expect no changes
+        run: |
+          ansible-playbook -i localhost, -c local playbooks/team-setup.yml | tee second-run.log
+          grep -Eq 'changed=0 +unreachable=0 +failed=0' second-run.log

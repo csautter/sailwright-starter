@@ -1,0 +1,26 @@
+---
+# In check mode on a fresh machine Git is not installed yet, so there is
+# nothing to compare against. A real run installs Git first.
+- name: Check whether Git is available
+  ansible.builtin.command: git --version  # noqa: command-instead-of-module
+  environment:
+    PATH: "{{ team_defaults_brew_path | default('/usr/bin') }}:{{ ansible_facts['env']['PATH'] }}"
+  register: team_defaults_git_version
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Set Git settings for the current user
+  community.general.git_config:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    scope: global
+  loop: "{{ team_defaults_git_config | dict2items }}"
+  environment:
+    PATH: "{{ team_defaults_brew_path | default('/usr/bin') }}:{{ ansible_facts['env']['PATH'] }}"
+  when: team_defaults_git_version.rc == 0
+
+- name: Report skipped Git settings
+  ansible.builtin.debug:
+    msg: "Git is not installed yet; Git settings apply on the first real run."
+  when: team_defaults_git_version.rc != 0

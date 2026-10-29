@@ -1,0 +1,10 @@
+---
+- name: Install dnf packages
+  ansible.builtin.dnf:
+    name: "{{ team_defaults_plan.dnf }}"
+    state: present
+  become: true
+  when: team_defaults_plan.dnf | length > 0
+
+- name: Apply Git settings
+  ansible.builtin.include_tasks: git_posix.yml

@@ -1,0 +1,27 @@
+---
+# Tools to install. Every name must be a key in team_defaults_catalog.
+team_defaults_tools:
+  - git
+  - jq
+
+# Git settings every developer gets. Applied per user on macOS and Linux and
+# system-wide on Windows.
+team_defaults_git_config:
+  init.defaultBranch: main
+
+# Package name per package manager. Leave a key out when a tool has no package
+# there; the role then skips that tool on that OS and reports it.
+#   brew       Homebrew formula (macOS)
+#   brew_cask  Homebrew cask (macOS apps)
+#   apt        Debian and Ubuntu
+#   dnf        Fedora and RHEL
+#   choco      Chocolatey (Windows)
+team_defaults_catalog:
+  git: { brew: git, apt: git, dnf: git, choco: git }
+  python: { brew: python, apt: python3, dnf: python3, choco: python }
+  node: { brew: node, apt: nodejs, dnf: nodejs, choco: nodejs-lts }
+  go: { brew: go, apt: golang-go, dnf: golang, choco: golang }
+  neovim: { brew: neovim, apt: neovim, dnf: neovim, choco: neovim }
+  vscode: { brew_cask: visual-studio-code, choco: vscode }
+  jq: { brew: jq, apt: jq, dnf: jq, choco: jq }
+  ripgrep: { brew: ripgrep, apt: ripgrep, dnf: ripgrep, choco: ripgrep }
