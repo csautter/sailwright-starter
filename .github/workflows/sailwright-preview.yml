@@ -1,0 +1,75 @@
+name: Preview with Sailwright
+
+# Installs the latest Sailwright release on macOS, Windows, and Linux runners
+# and previews the team setup with `sailwright provision local --check`, the
+# same steps as the README quick start. Check mode changes nothing on the runner.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly, to catch new Sailwright releases and package changes.
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  unix:
+    name: provision local --check (${{ matrix.os }})
+    # Scheduled runs only in the template itself, so copies don't spend
+    # runner minutes (macOS minutes count extra in private repos).
+    if: github.event_name != 'schedule' || github.repository == 'csautter/sailwright-starter'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install the Sailwright CLI (Homebrew)
+        if: runner.os == 'macOS'
+        run: brew install csautter/sailwright/sailwright
+
+      - name: Install the Sailwright CLI (install script)
+        if: runner.os == 'Linux'
+        run: |
+          curl -fsSL https://github.com/csautter/sailwright/releases/latest/download/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install host dependencies
+        run: sailwright install
+
+      # Run from outside the checkout: releases up to v0.22.1 treat any Git
+      # repo they start in as their own project folder.
+      - name: Preview the team setup
+        working-directory: ${{ runner.temp }}
+        env:
+          DEV_ALCHEMY_ROLE_SOURCES_CONFIG: ${{ github.workspace }}/ansible-role-sources.yml
+        run: sailwright provision local --check
+
+  windows:
+    name: provision local --check (windows-2025)
+    if: github.event_name != 'schedule' || github.repository == 'csautter/sailwright-starter'
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install the Sailwright CLI
+        run: |
+          irm https://github.com/csautter/sailwright/releases/latest/download/install.ps1 | iex
+          Join-Path $env:LOCALAPPDATA 'Programs\sailwright' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install host dependencies
+        run: sailwright install
+
+      - name: Preview the team setup
+        working-directory: ${{ runner.temp }}
+        env:
+          DEV_ALCHEMY_ROLE_SOURCES_CONFIG: ${{ github.workspace }}\ansible-role-sources.yml
+        run: sailwright provision local --check --yes

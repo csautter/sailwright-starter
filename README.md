@@ -159,10 +159,18 @@ run.
 
 ## Continuous integration
 
-[`.github/workflows/check.yml`](.github/workflows/check.yml) runs on every push:
-it lints the roles, previews and applies the setup in an Ubuntu container, and
-runs it a second time to make sure nothing changes. You can also run the
-playbook directly with Ansible:
+Two workflows run on every push:
+
+- [`check.yml`](.github/workflows/check.yml) lints the roles, applies the setup
+  in an Ubuntu container, and runs it a second time to make sure nothing
+  changes.
+- [`sailwright-preview.yml`](.github/workflows/sailwright-preview.yml) installs
+  Sailwright on macOS, Windows, and Linux runners and runs
+  `sailwright provision local --check` on each, like step 3 of the quick start.
+  macOS runner minutes count extra in private repositories; remove the
+  `macos-15` entry if that matters to you.
+
+You can also run the playbook directly with Ansible:
 
 ```bash
 ansible-playbook -i localhost, -c local playbooks/team-setup.yml --check
