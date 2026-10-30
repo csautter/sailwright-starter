@@ -1,11 +1,10 @@
 # Sailwright Starter
 
-A template for your team's machine setup. Fork it, pick your tools, and
-preview the changes on macOS, Windows, or Linux before anything is installed.
+A template for your team's machine setup. Fork it, pick your tools, and try
+it in a throwaway VM before it touches a real macOS, Windows, or Linux machine.
 
 Out of the box it installs Git, Python, Neovim, and jq and sets two shared Git
-defaults. Change the list and you have your own team setup, versioned in Git
-and testable in a throwaway VM.
+defaults. Change the list and you have your own team setup, versioned in Git.
 
 ## Before you start
 
@@ -35,7 +34,8 @@ The tools you can choose are listed in
 
 ### 3. Preview the changes
 
-Point Sailwright at this repo and run in check mode. Nothing is installed.
+Point Sailwright at this repo and run in check mode. Check mode only compares
+your machine with the setup and changes nothing.
 
 macOS and Linux:
 
@@ -51,38 +51,51 @@ $env:DEV_ALCHEMY_ROLE_SOURCES_CONFIG = "$PWD\ansible-role-sources.yml"
 sailwright provision local --check
 ```
 
-When the preview looks right, run the same command without `--check`.
-
-Notes per OS:
-
-- **Linux:** the preview on Debian and Ubuntu runs without `sudo`. The real
-  run installs packages with `sudo`; if sudo asks for a password, add
-  `--ask-become-pass` (short: `-K`).
-- **Windows:** Sailwright sets up temporary local access for the run and asks
-  for confirmation first. Start it from an elevated PowerShell to avoid the UAC
-  prompt.
-
 To keep the setting, add the `export` line to your shell profile (or set the
 variable permanently on Windows).
 
-## Test in a VM first
+### 4. Apply it in a VM first
 
-Try the setup on a clean machine before it touches your own. Keep the variable
-from step 3 set; Sailwright uses the same playbook for VMs.
+Run the setup for real on a disposable VM before it touches your own machine.
+Sailwright uses the same playbook and sets the VM's credentials itself.
 
 ```bash
-sailwright build list                      # what your host can run
-sailwright build ubuntu --type server --arch amd64
+sailwright build list                                   # what your host can run
+sailwright build ubuntu --type server --arch amd64      # once; takes a while
 sailwright create ubuntu --type server --arch amd64
+sailwright start ubuntu --type server --arch amd64
 sailwright provision ubuntu --type server --arch amd64 --check
 sailwright provision ubuntu --type server --arch amd64
+```
+
+Run the last command again: the second run should report no changes. Remove
+the VM when you are done:
+
+```bash
 sailwright destroy ubuntu --type server --arch amd64
 ```
 
-Replace `ubuntu --type server` with `windows11` or `macos` to test the other
-platforms your host supports. The
+On Linux and macOS, `sailwright build ubuntu` offers to download a published
+image instead of building one, which is much faster. Use `--arch arm64` on
+Apple Silicon. Replace `ubuntu --type server` with `windows11` or `macos` to
+test the other platforms your host supports; the
 [testing workflows guide](https://github.com/csautter/sailwright/blob/main/docs/testing-workflows.md)
 lists every combination.
+
+### 5. Apply it to your machine
+
+When the VM run looks right, drop `--check` from step 3:
+
+```bash
+sailwright provision local
+```
+
+- **macOS and Linux:** packages are installed with `sudo`. If sudo asks for a
+  password, add `--ask-become-pass` (short: `-K`). The preview in step 3 on
+  Debian and Ubuntu needs no `sudo`.
+- **Windows:** Sailwright sets up temporary local access for the run and asks
+  for confirmation first. Start it from an elevated PowerShell to avoid the UAC
+  prompt.
 
 ## What's inside
 
