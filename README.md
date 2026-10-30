@@ -57,7 +57,7 @@ Notes per OS:
 
 - **Linux:** the preview on Debian and Ubuntu runs without `sudo`. The real
   run installs packages with `sudo`; if sudo asks for a password, add
-  `-- --ask-become-pass` to the command.
+  `--ask-become-pass` (short: `-K`).
 - **Windows:** Sailwright sets up temporary local access for the run and asks
   for confirmation first. Start it from an elevated PowerShell to avoid the UAC
   prompt.
