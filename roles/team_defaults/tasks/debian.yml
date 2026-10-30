@@ -23,7 +23,8 @@
     state: present
     update_cache: true
     cache_valid_time: 3600
-  become: true
+  # Check mode only reads the package database, so the preview needs no sudo.
+  become: "{{ not ansible_check_mode }}"
   when:
     - team_defaults_plan.apt | length > 0
     - not ansible_check_mode or team_defaults_python_apt.rc == 0
